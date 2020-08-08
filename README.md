@@ -1,5 +1,14 @@
-# Convert torch to pytorch
+# Convert torch to pytorch (forked from [here](https://github.com/clcarwin/convert_torch_to_pytorch))
 Convert torch t7 model to pytorch model and source.
+
+## Updates:
+- Merged code from [here](https://github.com/clcarwin/convert_torch_to_pytorch/pull/43/files)
+- Added `environment.yml` file for conda configuration
+
+## Installation
+- Clone Repository
+- Create conda env from `environment.yml`
+- Run the below command
 
 ## Convert
 ```bash
