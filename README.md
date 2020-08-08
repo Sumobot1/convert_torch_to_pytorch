@@ -8,23 +8,54 @@ Convert torch t7 model to pytorch model and source.
 ## Installation
 - Clone Repository
 - Create conda env from `environment.yml`
-- Run the below command
 
-## Convert
-```bash
-python convert_torch.py -m vgg16.t7
-```
-Two file will be created ```vgg16.py``` ```vgg16.pth```
+## Usage
+- Run `python convert_torch.py -m <model_path>/<model_name>.t7` from inside of the conda env
+- Two files will be created:
+  - Model state dict: `<model_path>/<model_name>.pth`
+  - Model initialization code: `<model_path>/<model_name>.py`
+- `<model_path>/<model_name>.py` should include something like this:
+    ```python
+    /home/michael/Documents/Github/Michael/vgg_face_descriptor/original_code/VGG_FACE = nn.Sequential( # Sequential,
+        nn.Conv2d(3,64,(3, 3),(1, 1),(1, 1)),
+        nn.ReLU(),
 
-## Example
-```python
-import vgg16
+        ... more model layers ...
 
-model = vgg16.vgg16
-model.load_state_dict(torch.load('vgg16.pth'))
-model.eval()
-...
-```
+        nn.ReLU(),
+        nn.MaxPool2d((2, 2),(2, 2),(0, 0),ceil_mode=True),
+        Lambda(lambda x: x.view(x.size(0),-1)), # View,
+        nn.Sequential(Lambda(lambda x: x.view(1,-1) if 1==len(x.size()) else x ),nn.Linear(25088,4096)), # Linear,
+        nn.ReLU(),
+        nn.Dropout(0.5),
+        nn.Sequential(Lambda(lambda x: x.view(1,-1) if 1==len(x.size()) else x ),nn.Linear(4096,4096)), # Linear,
+        nn.ReLU(),
+        nn.Dropout(0.5),
+        nn.Sequential(Lambda(lambda x: x.view(1,-1) if 1==len(x.size()) else x ),nn.Linear(4096,2622)), # Linear,
+        nn.Softmax(),
+    )
+    ```
+- To load this model, remove everything after the final ReLU - the final layers are to reshape the tensor and perform classification.  Only the actual features are needed for fine-tuning the model
+- Additionally, turn the path into a normal python variable so the model itself can be easily loaded:
+    ```python
+    # Example:
+    model = nn.Sequential( # Sequential,
+        nn.Conv2d(3,64,(3, 3),(1, 1),(1, 1)),
+        nn.ReLU(),
+
+        ... more model layers ...
+
+        nn.ReLU(),
+        nn.MaxPool2d((2, 2),(2, 2),(0, 0),ceil_mode=True),
+    )
+    ```
+- The model can now be loaded like this:
+    ```python
+    model = ...
+    model.load_state_dict(torch.load('<model_path>/<model_name>.pth'))
+    model.eval()
+    ```
+
 ## Validated
 All the models in this table can be converted and the results have been validated.
 
